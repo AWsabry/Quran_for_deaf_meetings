@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %} Quran | {% block subtitle %} Base {% endblock %} {% endblock %}</title>
+    {% include 'base/css.html' %}
+    {% block extra_style %}  {% endblock %}
+</head>
+<body>
+    <main>
+        <header id="home">
+            {% include 'base/nav.html' %}
+            {% block extra_header %}  {% endblock %}
+        </header>
+        {% block content %}  {% endblock %}
+    </main>
+    {% include 'base/footer.html' %}
+
+    {% include 'base/js.html' %}
+	{% block extra_js %} {% endblock %}
+</body>
+</html>

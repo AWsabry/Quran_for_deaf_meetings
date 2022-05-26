@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block subtitle %} Home page {% endblock %}
+
+
+{% block content %}
+<div class="container">
+    {% if request.user.is_authenticated %}
+        Welcome, {{ request.user.username }}
+        <a href="{% url 'meeting:create' %}">Create Meeting</a>
+    {% else %}
+        Not authenticated yet
+    {% endif %}
+</div>
+{% endblock %}

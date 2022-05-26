@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+{% block extra_style %}
+<link rel='stylesheet' type='text/css' media='screen' href='{% static "css/main.css" %}'>
+{% endblock %}
+
+{% block content %}
+<section id="form-container" style="position: block;">
+    <img id="logo" src="{% static 'images/chat-icon.png' %}"/>
+
+    <div id="welcome-message">
+        <h1>Welcome to Quran</h1>
+        <p>Join the room!</p>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="form-field">
+            <input type="submit"  value="Join Room">
+        </div>
+    </form>
+
+</section>
+{% endblock %}

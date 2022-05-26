@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %} Register {% endblock %}
+
+{% load static %}
+
+{% block content %}
+    <form method="POST" class="contact-form" style="width:65%; align:center; margin: 0 auto; margin-top:35px;">
+       <h4 style="text-align:center;">Registration</h4>
+       {% csrf_token %}
+       {{ form.as_p }}
+       <div class="d-grid" style="margin-top:10px;"><button class="btn btn-dark btn-lg " id="submitButton" type="submit">register</button></div>
+    </form>
+{% endblock %}
