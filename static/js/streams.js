@@ -4,33 +4,22 @@ const CHANNEL = JSON.parse(document.getElementById('channel').textContent);
 let NAME = JSON.parse(document.getElementById('name').textContent);
 let  UID = Number(JSON.parse(document.getElementById('uid').textContent));
 
-
-console.log(APP_ID);
-console.log(TOKEN);
-console.log(CHANNEL);
-console.log(NAME);
-console.log(UID);
-console.log(typeof(UID));
-
-
 const client = AgoraRTC.createClient({mode:'rtc', codec:'vp8'});
 
 let localTracks = [];
 let remoteUsers = {};
 
 let joinAndDisplayLocalStream = async () => {
+    client.on('user-published', handleUserJoined);
+    client.on('user-left', handleUserLeft);
 
     UID = await client.join(APP_ID, CHANNEL, TOKEN, UID);
     localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
 
-//    let member = await createMember();
     let player = createMemberHTML(UID, NAME);
     document.getElementById('video-streams').insertAdjacentHTML('beforeend', player);
     localTracks[1].play(`user-${UID}`);
     await client.publish([localTracks[0], localTracks[1]]);
-
-    client.on('user-published', handleUserJoined);
-    client.on('user-left', handleUserLeft);
 }
 
 let handleUserJoined = async (user, mediaType) => {
@@ -39,16 +28,7 @@ let handleUserJoined = async (user, mediaType) => {
 
     if (mediaType === 'video'){
         let player = document.getElementById(`user-container-${user.uid}`)
-        if (player != null){
-            player.remove()
-        }
-
-//        let member = await getMember(user)
-
-//        player = `<div  class="video-container" id="user-container-${user.uid}">
-//            <div class="video-player" id="user-${user.uid}"></div>
-//            <div class="username-wrapper"><span class="user-name">${member.name}</span></div>
-//        </div>`
+        if (player != null) player.remove()
 
         player = createMemberHTML(user.uid);
         document.getElementById('video-streams').insertAdjacentHTML('beforeend', player)
@@ -86,17 +66,13 @@ let toggleMic = async (e) => {
 }
 
 function createMemberHTML(uid, name){
-    if (name==null){
-        name = uid;
-    };
-    html = '<div  class="video-container" id="user-container-'+ uid + '">' +
-                    '<div class="video-player" id="user-'+ uid +'"></div>' +
-                    '<div class="username-wrapper">' +
-                        '<span class="user-name">'+ name +'</span>' +
-                        '</div>' +
-                 '</div>';
-
-    return html;
+    if (name==null) name = uid;
+    return '<div  class="video-container" id="user-container-' + uid + '">' +
+                '<div class="video-player" id="user-' + uid + '"></div>' +
+                '<div class="username-wrapper">' +
+                     '<span class="user-name">' + name + '</span>' +
+                 '</div>' +
+           '</div>';
 }
 
 let leaveAndRemoveLocalStream = async () => {
@@ -109,6 +85,7 @@ let leaveAndRemoveLocalStream = async () => {
     //This is somewhat of an issue because if user leaves without actual pressing leave button, it will not trigger
     window.open('/', '_self')
 }
+
 
 joinAndDisplayLocalStream();
 

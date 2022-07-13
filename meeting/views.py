@@ -50,7 +50,7 @@ class RoomView(DetailView):
     slug_url_kwarg = 'channel_name'
     template_name = 'meeting/room.html'
 
-    redirect_url = 'home'
+    redirect_url = 'meeting:waiting'
     redirect_message = "The time hasn't come yet or it has already pass"
 
     extra_context = {
@@ -86,7 +86,6 @@ class RoomView(DetailView):
         request.session['end_at'] = obj.end_at.timestamp()
         request.session['channel_name'] = self.kwargs.get(self.slug_url_kwarg)
         # request.session.set_expiry((obj.end_at - current).total_seconds())
-
         return redirect(self.redirect_url)
 
     def get_object(self, queryset=None):
