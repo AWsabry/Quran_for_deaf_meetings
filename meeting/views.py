@@ -67,12 +67,9 @@ class RoomView(DetailView):
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
 
-        current = timezone.now()
-        start_time = obj.start_at - timedelta(minutes=15)
-        end_time = obj.end_at + timedelta(seconds=settings.AGORA_INCREASE_TIME)
-        # if not (start_time <= current <= end_time):
-        #     messages.error(self.request, self.get_redirect_message())
-        #     return redirect(self.get_redirect_url())
+        if not obj.is_timely_available():
+            messages.error(self.request, self.get_redirect_message())
+            return redirect(self.get_redirect_url())
 
         if request.user.is_authenticated and obj.user == request.user:
             request.session['uid'] = obj.uid

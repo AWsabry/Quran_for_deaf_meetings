@@ -1,10 +1,17 @@
+import os
+import binascii
+from datetime import timedelta
+
 from django.db import models
 from django.urls import reverse
+from django.conf import settings
+from django.utils import timezone
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.contrib.auth.backends import get_user_model
 
-from .utils import random_str_shuffle, generate_random_str, generate_agora_token
+from .utils import generate_agora_token
+
 
 User = get_user_model()
 
@@ -33,20 +40,32 @@ class Meeting(models.Model):
     token = models.CharField(max_length=150, null=True, blank=True)
     uid = models.IntegerField(null=True, blank=True)
 
+    def __str__(self):
+        return self.title
+
     def get_meeting_url(self, request):
         protocol = request.scheme + "://"
         domain = request.META['HTTP_HOST']
         view_oath = reverse('meeting:room', args=[self.channel_name, ])
         return protocol + domain + view_oath
 
+    @staticmethod
+    def generate_key():
+        return binascii.hexlify(os.urandom(20)).decode()
+
+    def is_timely_available(self):
+        current = timezone.now()
+        start_time = self.start_at - timedelta(minutes=15)
+        end_time = self.end_at + timedelta(seconds=settings.AGORA_INCREASE_TIME)
+        return start_time <= current <= end_time
+
 
 @receiver(post_save, sender=Meeting)
 def create_meeting_channel(sender, instance, created, **kwargs) -> None:
     if not created:
         return
-    title = instance.title or generate_random_str(10)
-    description = instance.description or generate_random_str(10)
-    channel_name = random_str_shuffle(title + description, 20)
+
+    channel_name = sender.generate_key()
     instance.channel_name = channel_name
     try:
         token, uid = generate_agora_token(channel_name=channel_name, expiration_time=instance.end_at.timestamp())
