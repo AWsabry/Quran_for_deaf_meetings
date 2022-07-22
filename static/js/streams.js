@@ -67,6 +67,12 @@ let toggleMic = async (e) => {
 
 function createMemberHTML(uid, name){
     if (name==null) name = uid;
+    if(UID === uid) return '<div  class="video-container-me" id="user-container-' + uid + '">' +
+                '<div class="video-player" id="user-' + uid + '"></div>' +
+                '<div class="username-wrapper">' +
+                     '<span class="user-name">' + name + '</span>' +
+                 '</div>' +
+           '</div>';
     return '<div  class="video-container" id="user-container-' + uid + '">' +
                 '<div class="video-player" id="user-' + uid + '"></div>' +
                 '<div class="username-wrapper">' +
