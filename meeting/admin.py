@@ -1,5 +1,4 @@
 from django.contrib import admin, messages
-from django.utils.html import format_html
 from django.utils.translation import ngettext
 
 
@@ -17,9 +16,8 @@ class MeetingAdmin(admin.ModelAdmin):
         return super().get_queryset(request)
 
     def show_url(self, obj):
-        if obj.pk and obj.is_timely_available():
-            link = obj.get_meeting_url(self.request)
-            return format_html('<a href="{}">{}</a>', link, 'GO Room')
+        if obj.pk:
+            return obj.get_meeting_link(self.request)
         return "--"
 
     def mark_as_finished(self, request, queryset):

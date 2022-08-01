@@ -1,47 +1,56 @@
-from datetime import timedelta
-
-from django.urls import reverse
 from django.conf import settings
-from django.utils import timezone
+from django.urls import reverse, reverse_lazy
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, ListView, DetailView, FormView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.views.generic import CreateView, UpdateView, ListView, DetailView, FormView
 
 from .models import Meeting
 from .utils import generate_agora_token
 from .forms import CreateMeetingForm, UpdateMeetingForm, WaitingForm
 
 
-class CreateMeetingView(LoginRequiredMixin, CreateView):
+class CreateMeetingView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Meeting
     form_class = CreateMeetingForm
     template_name = 'meeting/create.html'
     extra_context = {
         'title': 'Create Meeting'
     }
+    success_url = reverse_lazy('meeting:list')
+    success_message = "Meeting has created successfully"
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 
-class UpdateMeetingView(LoginRequiredMixin, CreateView):
+class UpdateMeetingView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Meeting
     form_class = UpdateMeetingForm
+    pk_url_kwarg = "id"
     template_name = 'meeting/update.html'
     extra_context = {
         'title': 'Update Meeting'
     }
+    success_url = reverse_lazy('meeting:list')
+    success_message = "Meeting has updated successfully"
 
 
 class UserMeetingListView(ListView):
     model = Meeting
-    template_name = 'accounts/meeting/list'
+    template_name = 'meeting/list.html'
     extra_context = {
         'title': 'Meeting List'
     }
+    context_object_name = "meetings"
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(user=self.request.user)
+        return queryset.filter(user=self.request.user).order_by('-created')
 
 
 class RoomView(DetailView):

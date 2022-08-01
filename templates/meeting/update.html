@@ -3,7 +3,9 @@
 
 {% block title %} {{ title }} {% endblock %}
 
-{% block content_form %}
+{% block content %}
+{% include 'base/admin_style.html' %}
+
 <form method="POST" class="contact-form" style="width:65%; align:center; margin: 0 auto; margin-top:35px;">
    <h4 style="text-align:center;">{{ title }}</h4>
    {% csrf_token %}

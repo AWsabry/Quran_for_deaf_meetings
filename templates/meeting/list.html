@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} {{ title }} {% endblock %}
+
+
+{% block content %}
+<h4>Meeting List View:</h4> <span style="display: inline-block;"> <a href="{% url 'meeting:create' %}">Create</a> </span>
+{% if meetings %}
+<table class="table table-striped" style="margin: 20px">
+    <thead>
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Title</th>
+        <th scope="col">Description</th>
+        <th scope="col">Created</th>
+        <th scope="col">Modified</th>
+        <th scope="col">Start At</th>
+        <th scope="col">End At</th>
+        <th scope="col">Edit</th>
+        <th scope="col">Link</th>
+    </tr>
+    </thead>
+    <tbody>
+        {% for meeting in meetings %}
+        <tr>
+            <th scope="row">{{ forloop.index }}</th>
+            <td>{{ meeting.title }}</td>
+            <td>{{ meeting.description }}</td>
+            <td>{{ meeting.created|timesince }}</td>
+            <td>{{ meeting.modified|timesince }}</td>
+            <td>{{ meeting.start_at|timesince }}</td>
+            <td>{{ meeting.end_at|timesince }}</td>
+            <td><a href="{% url 'meeting:update' meeting.pk %}">Update</a></td>
+            <td>{% if meeting.is_timely_available %}<a href="{% url 'meeting:room' meeting.channel_name %}">Link</a>{% else %}--{% endif %}</td>
+        </tr>
+        {% endfor %}
+  </tbody>
+</table>
+
+{% if is_paginated %}
+<nav aria-label="...">
+    <ul class="pagination">
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <span class="page-link">Previous</span>
+        </li>
+        {% for page in page_obj.paginator.page_range %}
+            {% if page_obj.number == page %}
+            <li class="page-item active" aria-current="page"><span class="page-link">{{ page }}</span></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{page}}">{{ page }}</a></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link" href="#">Next</a>
+        </li>
+  </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<span style="color:red;">No Meetings To View</span>
+{% endif %}
+{% endblock %}

@@ -5,21 +5,19 @@ from .models import Meeting
 
 
 class CreateMeetingForm(forms.ModelForm):
+    start_at = forms.SplitDateTimeField(widget=widgets.AdminSplitDateTime(), required=True)
+    end_at = forms.SplitDateTimeField(widget=widgets.AdminSplitDateTime(), required=True)
 
     class Meta:
         model = Meeting
         fields = [
-            'user', 'status', 'title', 'description', 'start_at', 'end_at'
+           'status', 'title', 'description', 'start_at', 'end_at'
         ]
-        widgets = {
-            'user': forms.HiddenInput(),
-            'status': forms.HiddenInput(),
-            'start_at': widgets.AdminSplitDateTime(),
-            'end_at': widgets.AdminSplitDateTime()
-        }
 
 
 class UpdateMeetingForm(forms.ModelForm):
+    start_at = forms.SplitDateTimeField(widget=widgets.AdminSplitDateTime(), required=True)
+    end_at = forms.SplitDateTimeField(widget=widgets.AdminSplitDateTime(), required=True)
 
     class Meta:
         model = Meeting

@@ -6,6 +6,7 @@ from django.db import models
 from django.urls import reverse
 from django.conf import settings
 from django.utils import timezone
+from django.utils.html import format_html
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.contrib.auth.backends import get_user_model
@@ -48,6 +49,12 @@ class Meeting(models.Model):
         domain = request.META['HTTP_HOST']
         view_oath = reverse('meeting:room', args=[self.channel_name, ])
         return protocol + domain + view_oath
+
+    def get_meeting_link(self, request):
+        if self.is_timely_available():
+            link = self.get_meeting_url(request)
+            return format_html('<a href="{}">{}</a>', link, 'GO Room')
+        return "--"
 
     @staticmethod
     def generate_key():
