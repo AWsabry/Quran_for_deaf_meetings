@@ -39,7 +39,7 @@ class UpdateMeetingView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     success_message = "Meeting has updated successfully"
 
 
-class UserMeetingListView(ListView):
+class UserMeetingListView(LoginRequiredMixin, ListView):
     model = Meeting
     template_name = 'meeting/list.html'
     extra_context = {
@@ -53,7 +53,7 @@ class UserMeetingListView(ListView):
         return queryset.filter(user=self.request.user).order_by('-created')
 
 
-class RoomView(DetailView):
+class RoomView(LoginRequiredMixin, DetailView):
     model = Meeting
     context_object_name = 'room'
     slug_url_kwarg = 'channel_name'
@@ -91,7 +91,6 @@ class RoomView(DetailView):
 
         request.session['end_at'] = obj.end_at.timestamp()
         request.session['channel_name'] = self.kwargs.get(self.slug_url_kwarg)
-        # request.session.set_expiry((obj.end_at - current).total_seconds())
         return redirect(self.redirect_url)
 
     def get_object(self, queryset=None):
@@ -100,7 +99,7 @@ class RoomView(DetailView):
         return obj
 
 
-class WaitingView(FormView):
+class WaitingView(LoginRequiredMixin, FormView):
     template_name = 'meeting/waiting.html'
     form_class = WaitingForm
     success_url = 'meeting:room'
