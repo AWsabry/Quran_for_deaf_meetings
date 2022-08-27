@@ -6,7 +6,7 @@
   }
 
 body{
-    background-color: rgba(232,233,239,1);
+    background-image: linear-gradient(to bottom right, blueviolet, papayawhip, cornflowerblue);
     font-family: 'Roboto', sans-serif;
 }
 
@@ -75,13 +75,11 @@ body{
 @media screen and (max-width:450px) {
     #form-container{
         width: 95%;
-
     }
 
     #welcome-message h1{
         font-size: 24px;
     }
-
 }
 
 
@@ -89,7 +87,12 @@ body{
 
 #room-name-wrapper{
     text-align: center;
-    font-size: 18px;
+    font-size: 30px;
+    font-weight: bold;
+    font-family : Arial Black;
+    color: white;
+    margin: 0;
+    padding: 0;
 }
 
 #video-streams{
@@ -105,7 +108,7 @@ body{
     flex-grow: 1;
     max-height: 100%;
     min-height: 350px;
-    border: 1px solid rgb(75, 93, 172);
+    border: 1px solid rgb(0,0,0);
     border-radius: 5px;
     margin: 2px;
     background-color: rgba(198,202,219,1);
@@ -119,7 +122,7 @@ body{
     position: fixed;
     bottom: 55px;
     right: 45px;
-    border: 1px solid rgb(75, 93, 172);
+    border: 1px solid rgb(0,0,0);
     border-radius: 5px;
     background-color: rgba(198,202,219,1);
 }
@@ -165,8 +168,6 @@ body{
     padding: 5px 20px;
     position: fixed;
     bottom:20px;
-
-
 }
 
 .control-icon{
