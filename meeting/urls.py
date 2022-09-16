@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CreateMeetingView, UpdateMeetingView, UserMeetingListView, RoomView, WaitingView
+from .views import CreateMeetingView, UpdateMeetingView, UserMeetingListView, RoomView, CreateOrGetMeetingMember
 
 app_name = 'meeting'
 
@@ -10,5 +10,7 @@ urlpatterns = [
     path('list/', UserMeetingListView.as_view(), name='list'),
 
     path('room/<str:channel_name>', RoomView.as_view(), name='room'),
-    path('waiting/', WaitingView.as_view(), name='waiting'),
+
+    path('member/get/<int:uid>/<str:channel_name>/', CreateOrGetMeetingMember.as_view(), name='member_get'),
+    path('member/create/', CreateOrGetMeetingMember.as_view(), name='member_create'),
 ]

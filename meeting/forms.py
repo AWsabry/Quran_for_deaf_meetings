@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.admin import widgets
 
-from .models import Meeting
+from .models import Meeting, MeetingMember
 
 
 class CreateMeetingForm(forms.ModelForm):
@@ -28,3 +28,8 @@ class UpdateMeetingForm(forms.ModelForm):
 
 class WaitingForm(forms.Form):
     name = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+
+class CreateMeetingMember(forms.Form):
+    user = forms.IntegerField(required=True)
+    meeting = forms.IntegerField(required=True)

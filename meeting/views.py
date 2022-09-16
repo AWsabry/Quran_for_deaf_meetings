@@ -1,15 +1,22 @@
 from django.conf import settings
+from django.http.response import JsonResponse
 from django.urls import reverse, reverse_lazy
+from django.urls.exceptions import NoReverseMatch
 from django.core.exceptions import PermissionDenied
+from django.utils.decorators import method_decorator
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import CreateView, UpdateView, ListView, DetailView, FormView
-
-from .models import Meeting
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import View, CreateView, UpdateView, ListView, DetailView, FormView
+from django.contrib.auth.backends import get_user_model
 from .utils import generate_agora_token
-from .forms import CreateMeetingForm, UpdateMeetingForm, WaitingForm
+from .models import Meeting, MeetingMember
+from .forms import CreateMeetingForm, UpdateMeetingForm, WaitingForm, CreateMeetingMember
+
+
+User = get_user_model()
 
 
 class CreateMeetingView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
@@ -75,23 +82,10 @@ class RoomView(LoginRequiredMixin, DetailView):
 
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
-
         if not obj.is_timely_available():
             messages.error(self.request, self.get_redirect_message())
             return redirect(self.get_redirect_url())
-
-        if request.user.is_authenticated and obj.user == request.user:
-            request.session['uid'] = obj.uid
-            request.session['token'] = obj.token
-            request.session['name'] = request.user.get_full_name() or request.user.username
-            return super().dispatch(request, *args, **kwargs)
-
-        if 'token' in request.session:
-            return super().dispatch(request, *args, **kwargs)
-
-        request.session['end_at'] = obj.end_at.timestamp()
-        request.session['channel_name'] = self.kwargs.get(self.slug_url_kwarg)
-        return redirect(self.redirect_url)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
         slug = self.kwargs.get(self.slug_url_kwarg)
@@ -99,30 +93,57 @@ class RoomView(LoginRequiredMixin, DetailView):
         return obj
 
 
-class WaitingView(LoginRequiredMixin, FormView):
-    template_name = 'meeting/waiting.html'
-    form_class = WaitingForm
-    success_url = 'meeting:room'
-    failed_message = "You don't have a room to be redirect to it"
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateOrGetMeetingMember(View):
+    pk_field = "uid"
+    pk_url_kwarg = "uid"
+    slug_field = "meeting__channel_name"
+    slug_url_kwarg = "channel_name"
+    model = MeetingMember
+    response_class = JsonResponse
+    form_class = CreateMeetingMember
+    http_method_names = ("get", "post")
 
-    def get_failed_message(self):
-        return self.failed_message
+    def render_to_response(self, context, **response_kwargs):
+        """Render the response class."""
+        return self.response_class(data=context, **response_kwargs)
 
-    def dispatch(self, request, *args, **kwargs):
-        if 'channel_name' not in request.session:
-            return PermissionDenied(self.get_failed_message())
-        return super(WaitingView, self).dispatch(request, *args, **kwargs)
+    def get_object(self):
+        """Get object or raise 404 error."""
+        obj = get_object_or_404(
+            self.model,
+            **{
+                self.pk_field: self.kwargs.get(self.pk_url_kwarg),
+                self.slug_field: self.kwargs.get(self.slug_url_kwarg)
+            }
+        )
+        return obj.as_dict()
 
-    def form_valid(self, form):
-        self.request.session['name'] = str(form.cleaned_data.get('name'))
-        return super(WaitingView, self).form_valid(form)
+    def get(self, request, uid=None, channel_name=None, *args, **kwargs):
+        """Get object model"""
+        if uid is None or channel_name is None:
+            raise NoReverseMatch(f"URL missing one attribute ({self.url_kwarg})")
+        context = {'data': self.get_object()}
+        return self.render_to_response(context, **kwargs)
 
-    def get_success_url(self):
-        channel_name = self.request.session.get('channel_name')
-        expiration_time = self.request.session.get('end_at')
-        token, uid = generate_agora_token(channel_name=channel_name, expiration_time=expiration_time)
-        self.request.session.update({
-            'uid': uid,
-            'token': token
-        })
-        return reverse(self.success_url, args=[channel_name, ])
+    def get_form_class(self):
+        """Return the form class to use."""
+        return self.form_class
+
+    def post(self, request, *args, **kwargs):
+        """Create object model."""
+        Form = self.get_form_class()
+        form = Form(request.POST)
+
+        if form.is_valid():
+            data = form.cleaned_data
+            data["meeting"] = get_object_or_404(Meeting, id=data.pop("meeting"))
+            data["user"] = get_object_or_404(User, id=data.pop("user"))
+            instance, created = self.model.objects.get_or_create(**data)
+            context = {"data":  instance.as_dict()}
+            kwargs.update({"status": 201 if created else 200})
+            return self.render_to_response(context, **kwargs)
+
+        context = {"errors": {f: e.get_json_data() for f, e in form.errors.items()}}
+        kwargs.update({"status": 400})
+        return self.render_to_response(context, **kwargs)

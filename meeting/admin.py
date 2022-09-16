@@ -2,13 +2,13 @@ from django.contrib import admin, messages
 from django.utils.translation import ngettext
 
 
-from .models import Meeting
+from .models import Meeting, MeetingMember
 
 
 class MeetingAdmin(admin.ModelAdmin):
-    list_display = ('user', 'status', 'title', 'start_at', 'end_at', 'show_url')
-    readonly_fields = ('show_url', )
-    exclude = ('channel_name', 'token', 'uid')
+    list_display = ('user', 'status', 'title', 'channel_name', 'start_at', 'end_at', 'show_url')
+    readonly_fields = ('show_url', 'token', 'channel_name', 'uid')
+    # exclude = ('channel_name', 'token', 'uid')
     actions = ('mark_as_finished', 'mark_as_cancelled')
 
     def get_queryset(self, request):
@@ -39,4 +39,5 @@ class MeetingAdmin(admin.ModelAdmin):
     mark_as_cancelled.short_description = 'Mark Meeting As Cancelled'
 
 
+admin.site.register(MeetingMember)
 admin.site.register(Meeting, MeetingAdmin)

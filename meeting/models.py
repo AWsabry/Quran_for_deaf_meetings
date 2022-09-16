@@ -9,7 +9,9 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.core.exceptions import ValidationError
 from django.contrib.auth.backends import get_user_model
+from django.forms.models import model_to_dict
 
 from .utils import generate_agora_token
 
@@ -67,6 +69,24 @@ class Meeting(models.Model):
         return start_time <= current <= end_time
 
 
+class MeetingMember(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    meeting = models.ForeignKey(Meeting, on_delete=models.SET_NULL, null=True)
+    token = models.CharField(max_length=150, null=True, blank=True)
+    uid = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'meeting')
+
+    def as_dict(self):
+        return {
+            "user": model_to_dict(self.user, fields=('id', 'username', 'first_name', 'last_name', 'email')),
+            "meeting": model_to_dict(self.meeting, exclude=('token', 'uid')),
+            "token": self.token,
+            "uid": self.uid
+        }
+
+
 @receiver(post_save, sender=Meeting)
 def create_meeting_channel(sender, instance, created, **kwargs) -> None:
     if not created:
@@ -76,6 +96,23 @@ def create_meeting_channel(sender, instance, created, **kwargs) -> None:
     instance.channel_name = channel_name
     try:
         token, uid = generate_agora_token(channel_name=channel_name, expiration_time=instance.end_at.timestamp())
+        instance.token = token
+        instance.uid = uid
+    except Exception as e:
+        print(e)
+    finally:
+        instance.save()
+
+
+@receiver(post_save, sender=MeetingMember)
+def create_member_credentials(sender, instance, created, **kwargs) -> None:
+    if not created:
+        return
+
+    channel_name = instance.meeting.channel_name
+    end_time = instance.meeting.end_at.timestamp()
+    try:
+        token, uid = generate_agora_token(channel_name=channel_name, expiration_time=end_time)
         instance.token = token
         instance.uid = uid
     except Exception as e:

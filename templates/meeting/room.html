@@ -58,11 +58,12 @@
             </div>
         </section>
     </main>
-    {{ request.session.token|json_script:"token" }}
     {{ app_id|json_script:"app_id" }}
+    {{ room.token|json_script:"token" }}
+    {{ room.uid|json_script:"uid" }}
     {{ room.channel_name|json_script:"channel" }}
-    {{ request.session.name|json_script:"name" }}
-    {{ request.session.uid|json_script:"uid" }}
+    {{ room.id|json_script:"room_id" }}
+    {{ request.user.id|json_script:"user_id" }}
     <script type="text/javascript" src="{% static 'assets\AgoraRTC_N-4.11.1.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/streams.js' %}"></script>
 </body>
