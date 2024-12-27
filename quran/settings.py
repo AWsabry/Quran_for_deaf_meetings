@@ -133,8 +133,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Agora Auth
-AGORA_APP_ID = "5ed46348b4204814a058a1171c7e3f18"
-AGORA_APP_CERTIFICATE = 'dcccf6678a04408e9ddcbac9ebdb7b5e'
+AGORA_APP_ID = "AGORA_APP_ID"
+AGORA_APP_CERTIFICATE = 'AGORA_APP_CERTIFICATE'
 AGORA_EXPIRATION_TIME = 3600 * 24  # in seconds (s * m * h)
 AGORA_INCREASE_TIME = 60 * 30  # in seconds (s * m * h)
 
